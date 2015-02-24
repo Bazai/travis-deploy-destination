@@ -1,5 +1,5 @@
 # Travis script for Bower package auto release, based on new tag detection
-VERSION: 0.0.8
+VERSION: 0.0.9
 
 # Real project actions
 
@@ -13,7 +13,8 @@ VERSION: 0.0.8
 2. Enter commands needed for final bower files building inside of `build()`
 function
 3. Enter commands for copying files from local base repository to local bower
-repository inside of `copy()` function
+repository inside of `copy()` function. Change only left part of `cp left_part
+right_part` expression. DO NOT CHANGE `../"${bower_repo_name}"/` part.
 4. Enter command for replacing version value to current $TRAVIS_TAG value
 inside of `replace_verion()` function
 5. Replace script call string inside of `.travis.yml`. Example:

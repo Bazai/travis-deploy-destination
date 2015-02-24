@@ -22,13 +22,12 @@ base_github_repo="Bazai/travis-deploy-source"
 bower_github_repo="Bazai/travis-deploy-destination"
 
 # |||   DO NOT TOUCH. Auto split github strings on '/' to get repo name
+# eg. Bazai/travis-deploy-source -> travis-deploy-source
+#     Bazai/travis-deploy-desination -> travis-deploy-desination
 base_repo_name="${base_github_repo##*/}"
 bower_repo_name="${bower_github_repo##*/}"
-# base_repo_name="travis-deploy-source"
-# bower_repo_name="travis-deploy-destination"
 # |||   END of DO NOT TOUCH
 
-# deploy_key_name="travis_deploy_source_deploy_key"
 encoded_deploy_key_location="script/travis_deploy_source_deploy_key.enc"
 deploy_enc_key="${encrypted_733433ba94d5_key}"
 deploy_enc_iv="${encrypted_733433ba94d5_iv}"
@@ -70,13 +69,9 @@ function precheck() {
       echo "Script not being run in Travis environment"
       read -p "Enter new ${bower_repo_name} version: " TRAVIS_TAG
       echo "${TRAVIS_TAG}"
-  # TODO: remove after check on Travis
-  else
-      TRAVIS_TAG="0.0.8"
   fi
 }
 
-# BazZy: CHECKED
 function travis_decrypt_deploy_key() {
   if [ "${TRAVIS}" = true ]; then
     openssl aes-256-cbc -K "${deploy_enc_key}" -iv "${deploy_enc_iv}" -in "${encoded_deploy_key_location}" -out ~/.ssh/"${bower_repo_name}" -d
@@ -87,7 +82,6 @@ function travis_decrypt_deploy_key() {
   fi
 }
 
-# BazZy: CHECKED
 function clone() {
   # Run Travis deploy key file decryption
   travis_decrypt_deploy_key
@@ -111,10 +105,6 @@ function clone() {
   fi
 }
 
-# function push_tag() {
-# }
-
-# BazZy: checked
 function push() {
   cd ../"${bower_repo_name}"
 
@@ -122,7 +112,7 @@ function push() {
   replace_version
 
   git add .
-  git commit -m "Travis deploy"
+  git commit -m "Travis release for version ${TRAVIS_TAG}"
   git tag -a -m "${TRAVIS_TAG}" "${TRAVIS_TAG}"
 
   git push --follow-tags origin master
