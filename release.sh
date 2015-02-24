@@ -21,6 +21,9 @@ base_github_repo="Bazai/travis-deploy-source"
 bower_repo_name="travis-deploy-destination"
 bower_github_repo="Bazai/travis-deploy-destination"
 
+git_config_email="robot@health-samurai.io"
+git_config_name="Travis CI Deployer"
+
 deploy_key_name="travis_deploy_source_deploy_key"
 encoded_deploy_key_location="script/travis_deploy_source_deploy_key.enc"
 deploy_enc_key="${encrypted_733433ba94d5_key}"
@@ -28,7 +31,7 @@ deploy_enc_iv="${encrypted_733433ba94d5_iv}"
 
 # TODO: Check on Travis
 function build() {
-  echo "# Hello 1\n##Hello 2\n###Hello 3" > file.md
+  echo -e "# Hello 1\n##Hello 2\n###Hello 3" > file.md
 }
 
 # BazZy: CHECKED
@@ -57,6 +60,9 @@ function precheck() {
       echo "Script not being run in Travis environment"
       read -p "Enter new ${bower_repo_name} version: " TRAVIS_TAG
       echo "${TRAVIS_TAG}"
+  # TODO: remove after check on Travis
+  else
+      TRAVIS_TAG="0.0.6"
   fi
 }
 
@@ -64,11 +70,10 @@ function precheck() {
 function travis_decrypt_deploy_key() {
   if [ "${TRAVIS}" = true ]; then
     openssl aes-256-cbc -K "${deploy_enc_key}" -iv "${deploy_enc_iv}" -in "${encoded_deploy_key_location}" -out ~/.ssh/"${bower_repo_name}" -d
-    echo "Decrypted private key"
     chmod 600 ~/.ssh/"${bower_repo_name}"
     echo -e "Host github.com\n  IdentityFile ~/.ssh/${bower_repo_name}" > ~/.ssh/config
-    git config --global user.email "robot@health-samurai.io"
-    git config --global user.name "Travis CI Deployer"
+    git config --global user.email "${git_config_email}"
+    git config --global user.name "${git_config_name}"
   fi
 }
 
@@ -96,13 +101,24 @@ function clone() {
   fi
 }
 
+# function push_tag() {
+# }
+
+# BazZy: checked
 function push() {
   cd ../"${bower_repo_name}"
-  # TODO: remove after travis check
-  cat file.md
+
+  # Replace version number
+  # TODO: replace in real project
+  sed -i.bak "s/AUTO_VERSION/$TRAVIS_TAG/g" README.md && rm README.md.bak
+
   git add .
   git commit -m "Travis deploy"
-  git push origin master
+  git tag -a -m "${TRAVIS_TAG}" "${TRAVIS_TAG}"
+
+  git push --follow-tags origin master
+
+  echo "Released version ${TRAVIS_TAG} successfully!"
 }
 
 # 1. Precheck operations
