@@ -1,5 +1,5 @@
 # Travis script for Bower package auto release, based on new tag detection
-VERSION: 0.0.9
+VERSION: 0.0.10
 
 # Real project actions
 
