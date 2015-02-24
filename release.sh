@@ -15,32 +15,37 @@ __base="$(basename ${__file} .sh)"
 # |           CHANGE THESE VALUES               |
 # |---------------------------------------------|
 # |                  ↓↓↓↓↓                      |
+git_config_email="robot@health-samurai.io"
+git_config_name="Travis CI Deployer"
 
 base_repo_name="travis-deploy-source"
 base_github_repo="Bazai/travis-deploy-source"
 bower_repo_name="travis-deploy-destination"
 bower_github_repo="Bazai/travis-deploy-destination"
 
-git_config_email="robot@health-samurai.io"
-git_config_name="Travis CI Deployer"
-
 deploy_key_name="travis_deploy_source_deploy_key"
 encoded_deploy_key_location="script/travis_deploy_source_deploy_key.enc"
 deploy_enc_key="${encrypted_733433ba94d5_key}"
 deploy_enc_iv="${encrypted_733433ba94d5_iv}"
 
-# TODO: Check on Travis
+# Enter project build commands inside of build() function
 function build() {
   echo -e "# Hello 1\n##Hello 2\n###Hello 3" > file.md
 }
 
-# BazZy: CHECKED
+# Enter built files copying to bower directory inside of copy() function
 function copy() {
   cp script/release.sh  ../"${bower_repo_name}"/
   cp file.md            ../"${bower_repo_name}"/
   cp README.md          ../"${bower_repo_name}"/
 }
 
+# Enter version replacing commands inside of replace_version() function
+function replace_version() {
+  file="README.md"
+  # Replace AUTOVERSION to current $TRAVIS_TAG value
+  sed -i.bak "s/AUTO_VERSION/${TRAVIS_TAG}/g" "${file}" && rm "${file}".bak
+}
 # |                  ↑↑↑↑↑                      |
 # |---------------------------------------------|
 # |            STOP CHANGE VALUES               |
@@ -62,11 +67,11 @@ function precheck() {
       echo "${TRAVIS_TAG}"
   # TODO: remove after check on Travis
   else
-      TRAVIS_TAG="0.0.6"
+      TRAVIS_TAG="0.0.7"
   fi
 }
 
-# BazZy: checked
+# BazZy: CHECKED
 function travis_decrypt_deploy_key() {
   if [ "${TRAVIS}" = true ]; then
     openssl aes-256-cbc -K "${deploy_enc_key}" -iv "${deploy_enc_iv}" -in "${encoded_deploy_key_location}" -out ~/.ssh/"${bower_repo_name}" -d
@@ -77,7 +82,7 @@ function travis_decrypt_deploy_key() {
   fi
 }
 
-# BazZy: checked
+# BazZy: CHECKED
 function clone() {
   # Run Travis deploy key file decryption
   travis_decrypt_deploy_key
@@ -109,8 +114,7 @@ function push() {
   cd ../"${bower_repo_name}"
 
   # Replace version number
-  # TODO: replace in real project
-  sed -i.bak "s/AUTO_VERSION/$TRAVIS_TAG/g" README.md && rm README.md.bak
+  replace_version
 
   git add .
   git commit -m "Travis deploy"
