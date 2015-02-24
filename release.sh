@@ -3,7 +3,7 @@
 # set +e # break script on first error
 set -e # make script exit when a command fails
 # set -u # to exit when script tries to use undeclared variables
-set -x # to trace what gets executed. Useful for debugging
+# set -x # to trace what gets executed. Useful for debugging
 
 __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 __root="$(cd "$(dirname "${__dir}")" && pwd)" # <-- change this
@@ -18,12 +18,17 @@ __base="$(basename ${__file} .sh)"
 git_config_email="robot@health-samurai.io"
 git_config_name="Travis CI Deployer"
 
-base_repo_name="travis-deploy-source"
 base_github_repo="Bazai/travis-deploy-source"
-bower_repo_name="travis-deploy-destination"
 bower_github_repo="Bazai/travis-deploy-destination"
 
-deploy_key_name="travis_deploy_source_deploy_key"
+# |||   DO NOT TOUCH. Auto split github strings on '/' to get repo name
+base_repo_name="${base_github_repo##*/}"
+bower_repo_name="${bower_github_repo##*/}"
+# base_repo_name="travis-deploy-source"
+# bower_repo_name="travis-deploy-destination"
+# |||   END of DO NOT TOUCH
+
+# deploy_key_name="travis_deploy_source_deploy_key"
 encoded_deploy_key_location="script/travis_deploy_source_deploy_key.enc"
 deploy_enc_key="${encrypted_733433ba94d5_key}"
 deploy_enc_iv="${encrypted_733433ba94d5_iv}"
@@ -67,7 +72,7 @@ function precheck() {
       echo "${TRAVIS_TAG}"
   # TODO: remove after check on Travis
   else
-      TRAVIS_TAG="0.0.7"
+      TRAVIS_TAG="0.0.8"
   fi
 }
 
